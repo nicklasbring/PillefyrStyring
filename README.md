@@ -16,4 +16,5 @@ Det samme med servoen som selvfølgelig også skal have justeret dens endpoints.
 * GSM modul (SIM-900)
 * High torque servo
 * Temperaturmåler
+* 5k resistor
 
