@@ -18,3 +18,12 @@ Det samme med servoen som selvfølgelig også skal have justeret dens endpoints.
 * Temperaturmåler
 * 5k resistor
 
+#### Libraries brugt:
+* OneWire.h
+* DallasTemperature.h
+* SoftwareSerial.h
+* Servo.h
+
+
+
+
