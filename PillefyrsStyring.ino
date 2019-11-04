@@ -3,7 +3,6 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <SoftwareSerial.h>
-#include <Servo.h>
 /********************************************************************/
 //Temperatur sensor er tilsuttet port 9
 #define ONE_WIRE_BUS 9
@@ -12,7 +11,7 @@ SoftwareSerial SIM900(7, 8);
 /********************************************************************/
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensor(&oneWire);
-Servo servo;
+int relay = 6;
 /********************************************************************/
 //String som indeholder text beskeden
 String textMessage;
@@ -24,7 +23,8 @@ void setup(){
   Serial.begin(19200);
   SIM900.begin(19200);
   sensor.begin();
-  servo.attach(6);
+  pinMode(relay, OUTPUT);
+  digitalWrite(relay, HIGH);
   Serial.println("Pilefyr Styring 1.0");
   //delay inden opkoblingen på gsm netværket
   delay(10000);
@@ -48,13 +48,13 @@ void loop(void){
   Serial.print(String("\nTempereatur = ") + temp);
 
     // tjekker om fyret har været genstarted siden det var under 30 grader
-    if(temp <= 30 && hasRestarted == true){
+    if(temp >= 40 && hasRestarted == true){
       hasRestarted = false;
     }
 
     //If statement som skal sende en besked når fyret går ud. 
     //Temperaturen vil blive ændret. Mere så jeg har noget at teste med
-    if (temp >= 30 && hasRestarted == false) {
+    if (temp <= 40 && hasRestarted == false) {
       sendSms("Fyret er slukket! \nTast 'genstart' for at genstarte");
       Serial.println("\nSMS er sendt!");
       hasRestarted = true; // retter bool så systemet ved at fyret er blevet genstartet
@@ -73,12 +73,11 @@ if(SIM900.available()>0){
 
   //Hvis komandoen "genstart" bliver skrevet, starter den servoen
   if(textMessage.indexOf("genstart")>=0){
-    servo.attach(6);
     Serial.println("Genstarter fyret");  
     sendSms("Fyret Genstarter");
-      servo.write(0);
-      delay(1000);
-      servo.write(140);
+    digitalWrite(relay, LOW);
+    delay(10000);
+    digitalWrite(relay, HIGH);
     textMessage = "";   
   }
 
@@ -97,7 +96,7 @@ void sendSms(String message){
   SIM900.print("AT+CMGF=1\r"); 
   delay(100);
 
-  SIM900.println("AT+CMGS=\"30223077\""); 
+  SIM900.println("AT+CMGS=\"25726666\""); 
   delay(100);
   // Send the SMS
   SIM900.println(message); 
