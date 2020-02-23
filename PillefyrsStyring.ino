@@ -29,7 +29,7 @@ void setup(){
   //delay inden opkoblingen på gsm netværket
   delay(10000);
 
-  Serial.print("GSM modul er klart...");
+  //Serial.print("GSM modul er klart...");
 
   // AT kommando der sætter modulet til sms mode
   SIM900.print("AT+CMGF=1\r"); 
@@ -45,21 +45,20 @@ void loop(void){
   //Kommando for at modtage temperaturmålinger og udskrive dem
   sensor.requestTemperatures(); 
   double temp = sensor.getTempCByIndex(0);
-  Serial.print(String("\nTempereatur = ") + temp);
+  //Serial.print(String("\nTempereatur = ") + temp);
 
     // tjekker om fyret har været genstarted siden det var under 30 grader
-    if(temp >= 40 && hasRestarted == true){
+    if(temp >= 35 && hasRestarted == true){
       hasRestarted = false;
     }
 
     //If statement som skal sende en besked når fyret går ud. 
-    //Temperaturen vil blive ændret. Mere så jeg har noget at teste med
-    if (temp <= 40 && hasRestarted == false) {
+    if (temp <= 35 && hasRestarted == false) {
       sendSms("Fyret er slukket! \nTast 'genstart' for at genstarte");
-      Serial.println("\nSMS er sendt!");
+      //Serial.println("\nSMS er sendt!");
       hasRestarted = true; // retter bool så systemet ved at fyret er blevet genstartet
     }
-  delay(5000);
+  delay(10000);
 }
 
 
@@ -67,36 +66,39 @@ void loop(void){
 void modtagSms (){
 if(SIM900.available()>0){
     textMessage = SIM900.readString();
-    Serial.print(textMessage);    
+    //Serial.print(textMessage);    
     delay(10);
   }
 
-  //Hvis komandoen "genstart" bliver skrevet, starter den servoen
+  //Hvis komandoen "genstart" bliver skrevet, genstarter relæet fyret
   if(textMessage.indexOf("genstart")>=0){
-    Serial.println("Genstarter fyret");  
-    sendSms("Fyret Genstarter");
-    digitalWrite(relay, LOW);
-    delay(10000);
-    digitalWrite(relay, HIGH);
-    textMessage = "";   
+    double temp = sensor.getTempCByIndex(0);
+    //Serial.println("Genstarter fyret"); 
+    //Serial.print(String("\nTempereatur = ") + temp);
+        sendSms("Fyret Genstarter" + (String("\nAktuel Temperatur = ") + temp) );
+        digitalWrite(relay, LOW);
+        delay(10000);
+        digitalWrite(relay, HIGH);
+        textMessage = "";   
   }
 
   //Hvis komandoen "status" bliver skrevet, sender den temperaturen på sms
   if(textMessage.indexOf("status")>=0){
-    Serial.println("Status Sendt");  
     double temp = sensor.getTempCByIndex(0);
-    Serial.print(String("\nTempereatur = ") + temp);
-    sendSms(String("Temperatur = ") + temp);      
-    textMessage = "";   
+    //Serial.println("Status Sendt");  
+    //Serial.print(String("\nTempereatur = ") + temp);
+      sendSms(String("Temperatur = ") + temp);      
+      textMessage = "";   
   }
 }
 
-//Metode der sender besked tilbage
+//Metode der sender besked tilbage til klient
 void sendSms(String message){
   SIM900.print("AT+CMGF=1\r"); 
   delay(100);
 
-  SIM900.println("AT+CMGS=\"25726666\""); 
+  //X'erne bliver erstatet med nummeret man vil tilnkytte styringen til
+  SIM900.println("AT+CMGS=\"xxxxxxxx\""); 
   delay(100);
   // Send the SMS
   SIM900.println(message); 
@@ -105,6 +107,5 @@ void sendSms(String message){
   SIM900.println((char)26); 
   delay(100);
   SIM900.println();
-  // Give module time to send SMS
   delay(5000);
 }
